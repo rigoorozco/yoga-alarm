@@ -44,26 +44,6 @@ EOF
     fi
 }
 
-# Helper: bootstrap package
-build_and_publish_bootstrap() {
-    local pkgname="$1"
-    local pkgdir="${PKGS_DIR}/${pkgname}"
-
-    cd "${pkgdir}"
-    makepkg --noconfirm   # no -s, so pacman won't try syncing localrepo yet
-
-    shopt -s nullglob
-    for f in ./*.pkg.tar.*; do
-        case "${f}" in
-            *.sig|*.src.tar.*) continue ;;
-        esac
-        cp -f "${f}" "${LOCAL_REPO_DIR}/"
-    done
-    shopt -u nullglob
-
-    refresh_repo_db
-}
-
 # Helper: build one package dir and publish resulting package(s) into local repo
 build_and_publish() {
     local pkgname="$1"
