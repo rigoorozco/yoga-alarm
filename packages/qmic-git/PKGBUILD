@@ -1,0 +1,30 @@
+pkgname=qmic-git
+_pkgname=qmic
+pkgver=1.0.r0.g4574736
+pkgrel=1
+pkgdesc="QMI IDL compiler"
+arch=(aarch64)
+url="https://github.com/andersson/qmic"
+license=(BSD)
+makedepends=(git)
+provides=(qmic)
+conflicts=(qmic)
+source=("git+https://github.com/andersson/qmic")
+md5sums=('SKIP')
+
+pkgver() {
+    cd "$_pkgname"
+    git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+    cd "$_pkgname"
+    make
+}
+
+package() {
+    cd "$_pkgname"
+    make DESTDIR="$pkgdir/" prefix=/usr install
+    install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+

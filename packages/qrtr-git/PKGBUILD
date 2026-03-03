@@ -1,0 +1,38 @@
+_mode=host
+_crossdirect=false
+_pkgname="qrtr"
+pkgname="$_pkgname-git"
+pkgdesc="Userspace reference for net/qrtr in the Linux kernel"
+pkgver=1.1.r5.g5923eea
+pkgrel=1
+_arches=specific
+arch=(aarch64)
+license=(BSD-3-Clause)
+url="https://github.com/linux-msm/$_pkgname"
+provides=("$_pkgname")
+depends=(glibc)
+makedepends=(
+    git
+    meson
+    gcc
+    linux-headers
+)
+_commit=5923eea97377f4a3ed9121b358fd919e3659db7b
+source=("git+$url#commit=$_commit")
+sha256sums=(SKIP)
+
+pkgver() {
+    cd "$_pkgname"
+    git describe --long --abbrev=7  --tags "$_commit" | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+    arch-meson $_pkgname build
+    meson compile -C build
+}
+
+package() {
+    meson install -C build --destdir "$pkgdir"
+
+    install -Dm644 "$_pkgname"/LICENSE "$pkgdir"/usr/share/licenses/$_pkgname/COPYING
+}
