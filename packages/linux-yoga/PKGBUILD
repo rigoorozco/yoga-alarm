@@ -3,47 +3,38 @@
 
 buildarch=8
 
-# git information
-_user_name=steev
-_repo_name=linux
-_commit_hash=d9bc77d4a87d37eda054cf1aa472424dec743cb2
-
-pkgbase=linux-aarch64
-_srcname=${_repo_name}-${_commit_hash}
+pkgbase=linux-yoga
+_srcname=linux-sdm845-6.16.7-r0
 _kernelname=${pkgbase#linux}
 _desc="AArch64 multi-platform"
-pkgver=6.0.9
+pkgver=6.16.7
 pkgrel=1
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc')
 options=('!strip')
-source=("https://codeload.github.com/${_user_name}/${_repo_name}/tar.gz/${_commit_hash}"
+source=("https://gitlab.com/sdm845-mainline/linux/-/archive/sdm845-6.16.7-r0/linux-sdm845-6.16.7-r0.tar.gz"
+        'yoga_defconfig'
         'linux.preset'
         '60-linux.hook'
         '90-linux.hook')
-md5sums=('8c70c24d60b064288d5590be79212434'
+md5sums=('10a61617f6ef4fd017662e290b385a61'
+         'ea4075b584e3909d8f978e7ec6d2c894'
          '41cb5fef62715ead2dd109dbea8413d6'
          '0a5f16bfec6ad982a2f6782724cca8ba'
          '3dc88030a8f2f5a5f97266d99b149f77')
 
 prepare() {
   cd $_srcname
-
-  echo "Setting version..."
-  scripts/setlocalversion --save-scmversion
-  echo "-$pkgrel" > localversion.10-pkgrel
-  echo "${pkgbase#linux}" > localversion.20-pkgname
-
-  #cat "${srcdir}/config" > ./.config
+  cat "${srcdir}/yoga_defconfig" > ./.config
 }
 
 build() {
   cd ${_srcname}
 
   # get kernel version
-  ccache make ${MAKEFLAGS} distro_defconfig
+  ccache make ${MAKEFLAGS} .config
   ccache make ${MAKEFLAGS} prepare
   ccache make ${MAKEFLAGS} -s kernelrelease > version
 
@@ -75,7 +66,7 @@ _package() {
   make ${MAKEFLAGS} INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 modules_install
 
   # remove build and source links
-  rm "$modulesdir"/{source,build}
+  #rm "$modulesdir"/{source,build}
 
   # sed expression for following substitutions
   local _subst="
@@ -104,7 +95,7 @@ _package-headers() {
 
   echo "Installing build files..."
   install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
-    localversion.* version vmlinux
+    version vmlinux
   install -Dt "$builddir/kernel" -m644 kernel/Makefile
   install -Dt "$builddir/arch/arm64" -m644 arch/arm64/Makefile
   cp -t "$builddir" -a scripts
