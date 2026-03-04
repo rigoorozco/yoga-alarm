@@ -12,7 +12,7 @@ echo "Running Docker build script.."
 export CARCH=aarch64
 export PACKAGER="Rigo Orozco Díaz <rigo.orozco.d@gmail.com>"
 export GPGKEY="0x0123456789abcdef"
-export MAKEFLAGS="ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-"
+export MAKEFLAGS="ARCH=arm64"
 
 sudo chmod -R 777 "${PKGS_DIR}"
 mkdir -p "${LOCAL_REPO_DIR}"
@@ -72,7 +72,6 @@ build_and_publish() {
             *.sig|*.src.tar.*) continue ;;
         esac
         cp -f "${f}" "${LOCAL_REPO_DIR}/"
-        sudo pacman -U --noconfirm ${f}
     done
     shopt -u nullglob
 
@@ -95,10 +94,11 @@ ensure_local_repo_in_pacman
 # Explicit build order
 build_and_publish "qmic-git"
 sudo pacman -Sy --noconfirm --disable-sandbox
-build_and_publish "qrtr-git"
+sudo pacman -Sy qrtr --noconfirm --disable-sandbox
+build_and_publish "qmic-git"
 build_and_publish "tqftpserv-git"
 build_and_publish "pd-mapper-git"
-# build_and_publish "linux-yoga"
+build_and_publish "linux-yoga"
 
 echo "All done. Local repo available at: ${LOCAL_REPO_DIR}"
 echo "Repo DB: ${LOCAL_REPO_DIR}/${LOCAL_REPO_NAME}.db.tar.gz"
