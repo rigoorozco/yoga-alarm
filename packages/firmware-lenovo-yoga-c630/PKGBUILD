@@ -1,0 +1,50 @@
+# Maintainer: Caleb Connolly <caleb@connolly.tech>
+# Contributor: Rigo Orozco-Diaz
+
+pkgname=firmware-lenovo-yoga-c630
+pkgver=1
+pkgrel=1
+pkgdesc="Firmware for Lenovo Yoga C630"
+arch=('aarch64')
+url="https://gitlab.com/sdm845-mainline/firmware-lenovo-yoga-c630"
+license=('custom:proprietary')
+depends=('linux-firmware')
+options=('!strip')
+
+_commit='6ddfd13d1bb0dcaf56dd0ffe9387f745a08eb80f'
+source=(
+  "$pkgname-$_commit.tar.gz::https://gitlab.com/sdm845-mainline/firmware-lenovo-yoga-c630/-/archive/$_commit/$pkgname-$_commit.tar.gz"
+)
+sha512sums=(
+  'c04d565c05c794c2da96cfbccb4ab9d4b406b8da34924901ab49002f6161c2c51e4cfc818f9cb0701ee0e7f4646280e4cc2fb441da3a0ff2514f5264934c2941'
+)
+
+package() {
+  cd "$srcdir/$pkgname-$_commit"
+
+  local files=(
+    './lib/firmware/postmarketos/qca/crbtfw21.tlv'
+    './lib/firmware/postmarketos/qca/crnv21.bin'
+    './lib/firmware/postmarketos/ipa_fws.mdt'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/adspr.jsn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/adspua.jsn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/cdspr.jsn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/modemuw.jsn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcadsp850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qccdsp850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcdsp1v2850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcdsp1v2850_nm.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcdsp2850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcdsp2850_nm.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcdxkmsuc850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcslpi850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcslpi850_cls.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/qcvss850.mbn'
+    './lib/firmware/qcom/sdm850/LENOVO/81JL/wlanmdsp.mbn'
+  )
+
+  local file
+  for file in "${files[@]}"; do
+    install -Dm644 "$file" "$pkgdir/${file#./}"
+  done
+}
