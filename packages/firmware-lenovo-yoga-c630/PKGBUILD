@@ -43,8 +43,9 @@ package() {
     './lib/firmware/qcom/sdm850/LENOVO/81JL/wlanmdsp.mbn'
   )
 
-  local file
+  local file dest
   for file in "${files[@]}"; do
-    install -Dm644 "$file" "$pkgdir/${file#./}"
+    dest="${file#./lib/}"
+    install -Dm644 "$file" "$pkgdir/usr/lib/$dest"
   done
 }
