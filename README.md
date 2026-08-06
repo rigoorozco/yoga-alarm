@@ -44,11 +44,19 @@ scripts/build-packages.sh
 ## Use The Repository
 
 The package repository is consumed from the `packages-latest` GitHub release.
-Add this to `/etc/pacman.conf` on the target system:
+Import and locally trust the package signing key on the target system:
+
+```sh
+curl -LO https://github.com/rigoorozco/yoga-alarm/releases/download/packages-latest/yoga-alarm-packaging.pub
+sudo pacman-key --add yoga-alarm-packaging.pub
+sudo pacman-key --lsign-key 041A82E390EAD451
+```
+
+Then add this to `/etc/pacman.conf`:
 
 ```ini
 [localrepo]
-SigLevel = Optional TrustAll
+SigLevel = Required DatabaseOptional
 Server = https://github.com/rigoorozco/yoga-alarm/releases/download/packages-latest
 ```
 
@@ -59,8 +67,26 @@ sudo pacman -Sy
 sudo pacman -S linux-yoga firmware-lenovo-yoga-c630
 ```
 
+## Package Signing
+
+Package archives in `packages/repo` can be signed after they are built:
+
+```sh
+scripts/sign-packages.sh --key 041A82E390EAD451
+```
+
+Export the public key file that users import with `pacman-key`:
+
+```sh
+gpg --armor --export 041A82E390EAD451 > yoga-alarm-packaging.pub
+```
+
+Only publish the exported public key. Do not publish `~/.gnupg`, secret-key
+exports, or files created with `gpg --export-secret-keys`.
+
 ## Notes
 
 - Packages are built for `aarch64`.
 - The repository database is named `localrepo`.
-- Package signing is not currently enforced by the generated repo config.
+- Repository database signatures are optional; package signatures are required
+  by the documented pacman configuration.
