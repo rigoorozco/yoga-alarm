@@ -5,7 +5,7 @@ set -euo pipefail
 
 PKGS_DIR=/packages
 LOCAL_REPO_DIR="${PKGS_DIR}/repo"
-LOCAL_REPO_NAME="localrepo"
+LOCAL_REPO_NAME="yoga-alarm"
 
 echo "Running Docker build script.."
 

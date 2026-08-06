@@ -55,7 +55,7 @@ sudo pacman-key --lsign-key 041A82E390EAD451
 Then add this to `/etc/pacman.conf`:
 
 ```ini
-[localrepo]
+[yoga-alarm]
 SigLevel = Required DatabaseOptional
 Server = https://github.com/rigoorozco/yoga-alarm/releases/download/packages-latest
 ```
@@ -87,6 +87,6 @@ exports, or files created with `gpg --export-secret-keys`.
 ## Notes
 
 - Packages are built for `aarch64`.
-- The repository database is named `localrepo`.
+- The repository database is named `yoga-alarm`.
 - Repository database signatures are optional; package signatures are required
   by the documented pacman configuration.

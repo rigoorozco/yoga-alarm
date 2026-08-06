@@ -6,6 +6,10 @@ PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 REPO_DIR="${REPO_DIR:-${PROJECT_ROOT}/packages/repo}"
 VERSION_TAG="${VERSION_TAG:-packages-$(date +%F)}"
 LATEST_TAG="${LATEST_TAG:-packages-latest}"
+REPO_NAME="${REPO_NAME:-yoga-alarm}"
+GPG_BIN="${GPG_BIN:-gpg}"
+SIGNING_KEY="${SIGNING_KEY:-041A82E390EAD451}"
+PUBKEY_FILE="${PUBKEY_FILE:-${REPO_DIR}/yoga-alarm-packaging.pub}"
 DRY_RUN=0
 
 usage() {
@@ -19,6 +23,9 @@ Environment:
   REPO_DIR           package repository directory. Defaults to packages/repo.
   VERSION_TAG        dated release tag. Defaults to packages-YYYY-MM-DD.
   LATEST_TAG         moving release tag. Defaults to packages-latest.
+  REPO_NAME          pacman repository database name. Defaults to yoga-alarm.
+  SIGNING_KEY        GPG key ID to export. Defaults to 041A82E390EAD451.
+  PUBKEY_FILE        public key output path. Defaults to yoga-alarm-packaging.pub.
 
 The script creates/updates VERSION_TAG and replaces LATEST_TAG with the same
 assets so pacman can use the stable packages-latest download URL.
@@ -73,21 +80,28 @@ github_repository_from_origin() {
 collect_assets() {
   shopt -s nullglob
   ASSETS=(
-    "${REPO_DIR}/localrepo.db"
-    "${REPO_DIR}/localrepo.db.tar.gz"
-    "${REPO_DIR}/localrepo.files"
-    "${REPO_DIR}/localrepo.files.tar.gz"
+    "${PUBKEY_FILE}"
+    "${REPO_DIR}/${REPO_NAME}.db"
+    "${REPO_DIR}/${REPO_NAME}.db.tar.gz"
+    "${REPO_DIR}/${REPO_NAME}.files"
+    "${REPO_DIR}/${REPO_NAME}.files.tar.gz"
     "${REPO_DIR}"/*.pkg.tar.*
   )
   shopt -u nullglob
 }
 
+export_public_key() {
+  [[ -n "${SIGNING_KEY}" ]] || die "SIGNING_KEY must not be empty"
+  "${GPG_BIN}" --armor --yes --output "${PUBKEY_FILE}" --export "${SIGNING_KEY}"
+}
+
 validate_assets() {
   [[ -d "${REPO_DIR}" ]] || die "repo directory not found: ${REPO_DIR}"
-  [[ -f "${REPO_DIR}/localrepo.db" ]] || die "missing repo database alias: ${REPO_DIR}/localrepo.db"
-  [[ -f "${REPO_DIR}/localrepo.db.tar.gz" ]] || die "missing repo database: ${REPO_DIR}/localrepo.db.tar.gz"
-  [[ -f "${REPO_DIR}/localrepo.files" ]] || die "missing repo files database alias: ${REPO_DIR}/localrepo.files"
-  [[ -f "${REPO_DIR}/localrepo.files.tar.gz" ]] || die "missing repo files database: ${REPO_DIR}/localrepo.files.tar.gz"
+  [[ -f "${PUBKEY_FILE}" ]] || die "missing public key file: ${PUBKEY_FILE}"
+  [[ -f "${REPO_DIR}/${REPO_NAME}.db" ]] || die "missing repo database alias: ${REPO_DIR}/${REPO_NAME}.db"
+  [[ -f "${REPO_DIR}/${REPO_NAME}.db.tar.gz" ]] || die "missing repo database: ${REPO_DIR}/${REPO_NAME}.db.tar.gz"
+  [[ -f "${REPO_DIR}/${REPO_NAME}.files" ]] || die "missing repo files database alias: ${REPO_DIR}/${REPO_NAME}.files"
+  [[ -f "${REPO_DIR}/${REPO_NAME}.files.tar.gz" ]] || die "missing repo files database: ${REPO_DIR}/${REPO_NAME}.files.tar.gz"
 
   collect_assets
   (( ${#ASSETS[@]} > 4 )) || die "no package archives found in ${REPO_DIR}"
@@ -155,12 +169,14 @@ while (( $# > 0 )); do
 done
 
 require_cmd git
+require_cmd "${GPG_BIN}"
 if (( ! DRY_RUN )); then
   require_cmd gh
 fi
 
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-$(github_repository_from_origin)}"
 
+export_public_key
 validate_assets
 
 log "Publishing ${#ASSETS[@]} assets from ${REPO_DIR}"
