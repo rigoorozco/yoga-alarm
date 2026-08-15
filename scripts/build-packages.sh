@@ -99,6 +99,7 @@ build_and_publish "qmic-git"
 build_and_publish "tqftpserv-git"
 build_and_publish "pd-mapper-git"
 build_and_publish "firmware-lenovo-yoga-c630"
+build_and_publish "alsa-ucm-conf-yoga-c630"
 build_and_publish "linux-yoga"
 
 echo "All done. Local repo available at: ${LOCAL_REPO_DIR}"

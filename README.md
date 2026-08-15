@@ -13,6 +13,7 @@ Package sources live under `packages/`:
 
 - `linux-yoga` - Yoga C630 kernel package.
 - `firmware-lenovo-yoga-c630` - device firmware package.
+- `alsa-ucm-conf-yoga-c630` - Yoga C630 ALSA UCM routing and WirePlumber format fixes.
 - `pd-mapper-git` - Qualcomm protection-domain mapper.
 - `qmic-git` - Qualcomm IPC helper tooling.
 - `qrtr-git` - Qualcomm QRTR tooling.
@@ -64,7 +65,14 @@ Then sync and install packages:
 
 ```sh
 sudo pacman -Sy
-sudo pacman -S linux-yoga firmware-lenovo-yoga-c630
+sudo pacman -S linux-yoga firmware-lenovo-yoga-c630 alsa-ucm-conf-yoga-c630
+```
+
+After installing the audio fix, log out and back in or restart the user audio
+services:
+
+```sh
+systemctl --user restart wireplumber pipewire pipewire-pulse
 ```
 
 ## Package Signing

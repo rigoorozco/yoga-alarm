@@ -1,0 +1,45 @@
+# Contributor: Rigo Orozco-Diaz
+
+pkgname=alsa-ucm-conf-yoga-c630
+pkgver=1.2.16.1
+pkgrel=1
+pkgdesc="ALSA UCM and WirePlumber audio fixes for the Lenovo Yoga C630"
+arch=('aarch64')
+url="https://github.com/rigoorozco/yoga-alarm"
+license=('BSD-3-Clause')
+depends=('wireplumber')
+provides=("alsa-ucm-conf=${pkgver}")
+conflicts=('alsa-ucm-conf')
+replaces=('alsa-ucm-conf')
+backup=('etc/wireplumber/wireplumber.conf.d/51-yoga-c630-audio.conf')
+source=(
+  "https://www.alsa-project.org/files/pub/lib/alsa-ucm-conf-${pkgver}.tar.bz2"
+  'HiFi-MM1.conf'
+  '51-yoga-c630-audio.conf'
+)
+sha256sums=(
+  'cf3d1c07e089a83c4ece2c20f05dd6a8aab7fcd108768c38811386880575492b'
+  '6f52a6c1ad603e5b3d7cab87fc832a6a448b75d8b58250a805e2309f60dacd81'
+  'd93d0077b994a5a1193b926886607995b3833ffc6d844ab08675512da2ea520a'
+)
+
+package() {
+  cd "alsa-ucm-conf-${pkgver}"
+
+  install -d "${pkgdir}/usr/share/alsa"
+  cp -r --no-preserve=ownership ucm2 "${pkgdir}/usr/share/alsa/"
+
+  # Replace the upstream SDM845 profile with the known-good Yoga C630 routing.
+  install -Dm644 "${srcdir}/HiFi-MM1.conf" \
+    "${pkgdir}/usr/share/alsa/ucm2/Qualcomm/sdm845/HiFi-MM1.conf"
+
+  install -Dm644 README.md \
+    "${pkgdir}/usr/share/doc/alsa-ucm-conf/README.md"
+  ln -s ../../alsa/ucm2/README.md \
+    "${pkgdir}/usr/share/doc/alsa-ucm-conf/ucm2"
+  install -Dm644 LICENSE \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+
+  install -Dm644 "${srcdir}/51-yoga-c630-audio.conf" \
+    "${pkgdir}/etc/wireplumber/wireplumber.conf.d/51-yoga-c630-audio.conf"
+}
