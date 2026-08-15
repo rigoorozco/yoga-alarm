@@ -2,7 +2,7 @@
 
 pkgname=alsa-ucm-conf-yoga-c630
 pkgver=1.2.16.1
-pkgrel=1
+pkgrel=3
 pkgdesc="ALSA UCM and WirePlumber audio fixes for the Lenovo Yoga C630"
 arch=('aarch64')
 url="https://github.com/rigoorozco/yoga-alarm"
@@ -19,8 +19,8 @@ source=(
 )
 sha256sums=(
   'cf3d1c07e089a83c4ece2c20f05dd6a8aab7fcd108768c38811386880575492b'
-  '6f52a6c1ad603e5b3d7cab87fc832a6a448b75d8b58250a805e2309f60dacd81'
-  'd93d0077b994a5a1193b926886607995b3833ffc6d844ab08675512da2ea520a'
+  'c423056d829cd4883f6275d68b0b0856922a0b5e587d25ef07ad50f0bb7c0617'
+  'a1d8ea9439b13c38ddc2cab767bb9f5144f8be38901d0d3e11b347a29e371cb6'
 )
 
 package() {
