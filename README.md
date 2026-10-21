@@ -11,7 +11,7 @@ services used by this device.
 
 Package sources live under `packages/`:
 
-- `linux-yoga` - unpatched upstream Linux 7.3 for Yoga C630
+- `linux-yoga` - upstream Linux 7.3 with a Yoga C630 DisplayPort DTS patch
 - `firmware-lenovo-yoga-c630` - device firmware package.
 - `alsa-ucm-conf-yoga-c630` - Yoga C630 ALSA UCM routing and WirePlumber format fixes.
 - `pd-mapper-git` - Qualcomm protection-domain mapper.

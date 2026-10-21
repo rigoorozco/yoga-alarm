@@ -8,7 +8,7 @@ _srcname=linux-7.3
 _kernelname=${pkgbase#linux}
 _desc="AArch64 multi-platform"
 pkgver=7.3
-pkgrel=1
+pkgrel=2
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -20,17 +20,20 @@ source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/${_srcname}.tar.xz"
         'trim.config'
         'linux.preset'
         '60-linux.hook'
-        '90-linux.hook')
+        '90-linux.hook'
+        '0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch')
 sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
             '960f6dee3f1fb300f93e0441545bbdc50c3b088d1959e89af1d7fb99b3047aa1'
             '714dd01635ea1ea014341348d5c15229d320997be5af5eda15ec716eadd8dc51'
             'f71f3f9ff9160cb7be2d5e1ee19c03d68c08c27417afa6b6ee3eedaf759de4a6'
             '6837b3e2152f142f3fff595c6cbd03423f6e7b8d525aac8ae3eb3b58392bd255'
             '452b8d4d71e1565ca91b1bebb280693549222ef51c47ba8964e411b2d461699c'
-            '71df1b18a3885b151a3b9d926a91936da2acc90d5e27f1ad326745779cd3759d')
+            '71df1b18a3885b151a3b9d926a91936da2acc90d5e27f1ad326745779cd3759d'
+            '0660674d6c961add2f81d638c3dff43f2b0d3690e9a4779cffb8f069afb72458')
 
 prepare() {
   cd $_srcname
+  patch -Np1 -i "${srcdir}/0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch"
   scripts/kconfig/merge_config.sh -m -O . \
     arch/arm64/configs/defconfig \
     "${srcdir}/arch.config" \

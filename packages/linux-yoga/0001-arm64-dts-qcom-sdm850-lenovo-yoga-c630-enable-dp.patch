@@ -1,0 +1,42 @@
+Subject: [PATCH] arm64: dts: qcom: sdm850-lenovo-yoga-c630: enable two-lane DP
+
+Enable the external DisplayPort controller on the right-hand USB-C port,
+register the combo PHY as a Type-C mode switch, and describe the two DP
+lanes used by this board. Without the lane limit the driver defaults to
+four lanes and link training fails with the tested USB-C HDMI cable.
+
+The two-lane setting follows the earlier Yoga C630 DisplayPort proposal:
+https://lkml.iu.edu/2208.1/02295.html
+
+Display output was tested at 3840x2160 at 30 Hz and 2560x1440 near 60 Hz.
+Direct VMM7100 cable unplug still causes display timeouts and an external
+abort in the DP diagnostic snapshot path; this patch does not fix that.
+An Anker HDMI dock survives USB-C disconnect/reconnect at the same video
+link settings. See README.md for observations and remaining investigation.
+
+---
+--- a/arch/arm64/boot/dts/qcom/sdm850-lenovo-yoga-c630.dts
++++ b/arch/arm64/boot/dts/qcom/sdm850-lenovo-yoga-c630.dts
+@@ -596,6 +596,14 @@
+ 	status = "okay";
+ };
+ 
++&mdss_dp {
++	status = "okay";
++};
++
++&mdss_dp_out {
++	data-lanes = <0 1>;
++};
++
+ &mdss_dsi0 {
+ 	status = "okay";
+ 	vdda-supply = <&vreg_l26a_1p2>;
+@@ -861,6 +869,7 @@
+ 
+ &usb_1_qmpphy {
+ 	status = "okay";
++	mode-switch;
+ 
+ 	vdda-phy-supply = <&vdda_usb1_ss_core>;
+ 	vdda-pll-supply = <&vdda_usb1_ss_1p2>;
