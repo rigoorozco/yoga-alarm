@@ -4,37 +4,35 @@
 buildarch=8
 
 pkgbase=linux-yoga
-_srcname=linux-sdm845-7.1-rc1-r0-85f1df2a4ec71d7a91dd95a7a49f889d1595ffa8
+_srcname=linux-7.3
 _kernelname=${pkgbase#linux}
 _desc="AArch64 multi-platform"
-pkgver=7.1.0rc1
+pkgver=7.3
 pkgrel=1
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc' 'ccache')
 options=('!strip')
-source=("https://gitlab.com/sdm845-mainline/linux/-/archive/sdm845-7.1-rc1-r0/linux-sdm845-7.1-dev.tar.gz"
+source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/${_srcname}.tar.xz"
         'arch.config'
         'yoga.config'
         'trim.config'
         'linux.preset'
         '60-linux.hook'
         '90-linux.hook')
-md5sums=('cd145e09c5dc5f360a870e9d1451a734'
-         'cf57835bb4219d4012bddd55c2867c9f'
-         '84ba7c400bc28710fc657cdc819eed62'
-         '5093f501b6bbffcffc01b3aafb1542b4'
-         '41cb5fef62715ead2dd109dbea8413d6'
-         '0a5f16bfec6ad982a2f6782724cca8ba'
-         '3dc88030a8f2f5a5f97266d99b149f77')
+sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
+            '960f6dee3f1fb300f93e0441545bbdc50c3b088d1959e89af1d7fb99b3047aa1'
+            '714dd01635ea1ea014341348d5c15229d320997be5af5eda15ec716eadd8dc51'
+            'f71f3f9ff9160cb7be2d5e1ee19c03d68c08c27417afa6b6ee3eedaf759de4a6'
+            '6837b3e2152f142f3fff595c6cbd03423f6e7b8d525aac8ae3eb3b58392bd255'
+            '452b8d4d71e1565ca91b1bebb280693549222ef51c47ba8964e411b2d461699c'
+            '71df1b18a3885b151a3b9d926a91936da2acc90d5e27f1ad326745779cd3759d')
 
 prepare() {
   cd $_srcname
   scripts/kconfig/merge_config.sh -m -O . \
     arch/arm64/configs/defconfig \
-    arch/arm64/configs/sdm845.config \
-    arch/arm64/configs/misc.config \
     "${srcdir}/arch.config" \
     "${srcdir}/yoga.config" \
     "${srcdir}/trim.config"
@@ -75,8 +73,8 @@ _package() {
   echo "Installing modules..."
   make ${MAKEFLAGS} INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 modules_install
 
-  # remove build and source links
-  #rm "$modulesdir"/{source,build}
+  # The headers package owns build/; do not ship links to the build machine.
+  rm -f "$modulesdir"/{source,build}
 
   # sed expression for following substitutions
   local _subst="
@@ -146,7 +144,7 @@ _package-headers() {
   done
 
   echo "Removing documentation..."
-  rm -r "$builddir/Documentation"
+  rm -rf "$builddir/Documentation"
 
   echo "Removing broken symlinks..."
   find -L "$builddir" -type l -printf 'Removing %P\n' -delete
