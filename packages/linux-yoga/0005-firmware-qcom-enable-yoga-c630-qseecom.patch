@@ -1,0 +1,47 @@
+From: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+Subject: [PATCH v4 4/8] firmware: qcom: enable QSEECOM on Lenovo Yoga C630
+
+QSEECOM driver end UEFI vars access works on the Lenovo Yoga C630. This
+platform has only one storage (UFS) shared between Linux and SecureOS
+world, uefisecapp can not update variables directly. It requires some
+additional steps in order to update variables, which are not yet reverse
+engineered.
+
+Enable the QSEECOM device on that laptop and set up a quirk, making UEFI
+vars read-only.
+
+Reviewed-by: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+
+Link: https://lore.kernel.org/r/20250625-more-qseecom-v4-4-aacca9306cee@oss.qualcomm.com
+Backport: refresh include and platform-list context for Linux 7.3.
+
+---
+diff --git a/drivers/firmware/qcom/qcom_scm.c b/drivers/firmware/qcom/qcom_scm.c
+--- a/drivers/firmware/qcom/qcom_scm.c
++++ b/drivers/firmware/qcom/qcom_scm.c
+@@ -14,6 +14,7 @@
+ #include <linux/err.h>
+ #include <linux/export.h>
+ #include <linux/firmware/qcom/qcom_pas.h>
++#include <linux/firmware/qcom/qcom_qseecom.h>
+ #include <linux/firmware/qcom/qcom_scm.h>
+ #include <linux/firmware/qcom/qcom_tzmem.h>
+ #include <linux/init.h>
+@@ -2294,6 +2295,8 @@
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(qcom_scm_qseecom_app_send);
++
++static unsigned long qcom_qseecom_ro_uefi = QCOM_QSEECOM_QUIRK_RO_UEFIVARS;
+ 
+ /*
+  * We do not yet support re-entrant calls via the qseecom interface. To prevent
+@@ -2318,6 +2321,7 @@
+ 	{ .compatible = "lenovo,thinkbook-16" },
+ 	{ .compatible = "lenovo,thinkpad-t14s" },
+ 	{ .compatible = "lenovo,thinkpad-x13s", },
++	{ .compatible = "lenovo,yoga-c630", .data = &qcom_qseecom_ro_uefi, },
+ 	{ .compatible = "lenovo,yoga-slim7x" },
+ 	{ .compatible = "medion,sprchrgd14s1" },
+ 	{ .compatible = "microsoft,arcata", },

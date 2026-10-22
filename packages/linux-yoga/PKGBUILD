@@ -8,7 +8,7 @@ _srcname=linux-7.3
 _kernelname=${pkgbase#linux}
 _desc="AArch64 multi-platform"
 pkgver=7.3
-pkgrel=2
+pkgrel=3
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -21,19 +21,38 @@ source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/${_srcname}.tar.xz"
         'linux.preset'
         '60-linux.hook'
         '90-linux.hook'
-        '0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch')
+        '0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch'
+        '0002-efi-efivars-handle-read-only-variable-writes.patch'
+        '0003-firmware-qcom-pass-qseecom-quirks.patch'
+        '0004-firmware-qcom-uefisecapp-read-only-variables.patch'
+        '0005-firmware-qcom-enable-yoga-c630-qseecom.patch'
+        '0006-arm64-dts-qcom-yoga-c630-uefi-rtc-offset.patch')
 sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
             '960f6dee3f1fb300f93e0441545bbdc50c3b088d1959e89af1d7fb99b3047aa1'
-            '714dd01635ea1ea014341348d5c15229d320997be5af5eda15ec716eadd8dc51'
+            '547083b7eb524cf03c2f669a1be00f3b7224fea48bc17edc6a0b069232cbb06b'
             'f71f3f9ff9160cb7be2d5e1ee19c03d68c08c27417afa6b6ee3eedaf759de4a6'
             '6837b3e2152f142f3fff595c6cbd03423f6e7b8d525aac8ae3eb3b58392bd255'
             '452b8d4d71e1565ca91b1bebb280693549222ef51c47ba8964e411b2d461699c'
             '71df1b18a3885b151a3b9d926a91936da2acc90d5e27f1ad326745779cd3759d'
-            '0660674d6c961add2f81d638c3dff43f2b0d3690e9a4779cffb8f069afb72458')
+            '0660674d6c961add2f81d638c3dff43f2b0d3690e9a4779cffb8f069afb72458'
+            'fda5d9eb4e93048e807a5d4a37439ea4ffa6d921a7956aa5360fd456b7513f13'
+            '1f8ac871ee8bf3496b223507b1ade015e0e2fe5dfddf4a6d22460211a8ca63be'
+            '7bc8e84b12ca7d476d46e6e9537f66c36ab9fb573cac2c2765e46450483c05ff'
+            'dcb7aa96c3ba405d0846319d21db768d9ebc8815891a8eb462affa910b1f76ce'
+            '557095e3b1addd98d9d79c01357c1eeea16e73b3bf4de57000a31081889006d5')
 
 prepare() {
   cd $_srcname
-  patch -Np1 -i "${srcdir}/0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch"
+  local patchfile
+  for patchfile in \
+    0001-arm64-dts-qcom-sdm850-lenovo-yoga-c630-enable-dp.patch \
+    0002-efi-efivars-handle-read-only-variable-writes.patch \
+    0003-firmware-qcom-pass-qseecom-quirks.patch \
+    0004-firmware-qcom-uefisecapp-read-only-variables.patch \
+    0005-firmware-qcom-enable-yoga-c630-qseecom.patch \
+    0006-arm64-dts-qcom-yoga-c630-uefi-rtc-offset.patch; do
+    patch --fuzz=0 -Np1 -i "${srcdir}/${patchfile}"
+  done
   scripts/kconfig/merge_config.sh -m -O . \
     arch/arm64/configs/defconfig \
     "${srcdir}/arch.config" \

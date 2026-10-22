@@ -1,0 +1,29 @@
+From: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+Subject: [PATCH v4 1/8] efi: efivars: don't crash in efivar_set_variable{,_locked} in r/o case
+
+If efivar implementation doesn't provide write support, then calling
+efivar_set_variable() (e.g. when PM8xxx RTC driver tries to update the
+RTC offset) will crash the system. Prevent that by checking that
+set_variable callback is actually provided and fail with an
+EFI_WRITE_PROTECTED if it is not.
+
+Fixes: 472831d4c4b2 ("efi: vars: Add thin wrapper around EFI get/set variable interface")
+Reported-by: Johan Hovold <johan@kernel.org>
+Closes: https://lore.kernel.org/r/aFlps9iUcD42vN4w@hovoldconsulting.com
+Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>
+
+Link: https://lore.kernel.org/r/20250625-more-qseecom-v4-1-aacca9306cee@oss.qualcomm.com
+
+---
+diff --git a/drivers/firmware/efi/vars.c b/drivers/firmware/efi/vars.c
+--- a/drivers/firmware/efi/vars.c
++++ b/drivers/firmware/efi/vars.c
+@@ -227,6 +227,8 @@
+ 	setvar = __efivars->ops->set_variable_nonblocking;
+ 	if (!setvar || !nonblocking)
+ 		 setvar = __efivars->ops->set_variable;
++	if (!setvar)
++		return EFI_WRITE_PROTECTED;
+ 
+ 	return setvar(name, vendor, attr, data_size, data);
+ }
