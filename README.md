@@ -93,6 +93,11 @@ gpg --armor --export 041A82E390EAD451 > yoga-alarm-packaging.pub
 Only publish the exported public key. Do not publish `~/.gnupg`, secret-key
 exports, or files created with `gpg --export-secret-keys`.
 
+## Documentation
+
+See the [documentation index](docs/README.md) for kernel build and recovery
+instructions, RTC/UEFI setup, and DisplayPort findings.
+
 ## Notes
 
 - Packages are built for `aarch64`.
