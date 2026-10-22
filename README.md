@@ -14,6 +14,7 @@ Package sources live under `packages/`:
 - `linux-yoga` - upstream Linux 7.3 with a Yoga C630 DisplayPort DTS patch
 - `firmware-lenovo-yoga-c630` - device firmware package.
 - `alsa-ucm-conf-yoga-c630` - Yoga C630 ALSA UCM routing and WirePlumber format fixes.
+- `edk2-shell-aa64` - pinned AArch64 EDK II Shell 26H2.
 - `pd-mapper-git` - Qualcomm protection-domain mapper.
 - `qmic-git` - Qualcomm IPC helper tooling.
 - `qrtr-git` - Qualcomm QRTR tooling.

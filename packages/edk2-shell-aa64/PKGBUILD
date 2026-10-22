@@ -1,0 +1,30 @@
+# Contributor: Rigo Orozco-Diaz
+
+pkgname=edk2-shell-aa64
+pkgver=26H2
+pkgrel=1
+pkgdesc="EDK II UEFI Shell for AArch64, pinned to the Yoga C630 tested release"
+arch=('aarch64')
+url="https://github.com/pbatard/UEFI-Shell"
+license=('BSD-2-Clause-Patent')
+options=('!strip')
+source=(
+  "shellaa64-${pkgver}.efi::${url}/releases/download/${pkgver}/shellaa64.efi"
+  "License-${pkgver}.txt::https://raw.githubusercontent.com/pbatard/UEFI-Shell/${pkgver}/License.txt"
+  'edk2-shell-yoga.conf'
+)
+noextract=("shellaa64-${pkgver}.efi")
+sha256sums=(
+  'ce22900f22bce4e31edc26adc7bdb7608ece852d24370a9cf4095e4a2be5aa9e'
+  '7aa278b6f1a2125d0a0c596fa537caca5a41e7b03f7d2dd0489905f65ffdb984'
+  '4f35c36ffc64c472de5c19393d76632db09db9c7defbd6174131e277859c4337'
+)
+
+package() {
+  install -Dm644 "${srcdir}/shellaa64-${pkgver}.efi" \
+    "${pkgdir}/boot/EFI/tools/edk2-shell-yoga.efi"
+  install -Dm644 "${srcdir}/edk2-shell-yoga.conf" \
+    "${pkgdir}/boot/loader/entries/edk2-shell-yoga.conf"
+  install -Dm644 "${srcdir}/License-${pkgver}.txt" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/License.txt"
+}
