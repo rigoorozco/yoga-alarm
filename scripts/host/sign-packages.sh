@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPO_DIR="${REPO_DIR:-${PROJECT_ROOT}/packages/repo}"
 GPG_BIN="${GPG_BIN:-gpg}"
 SIGNING_KEY="${SIGNING_KEY:-}"

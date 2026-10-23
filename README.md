@@ -31,22 +31,22 @@ packages/repo
 Build every package from the host using Docker (including the kernel):
 
 ```sh
-scripts/run-docker-build.sh
+scripts/host/run-docker-build.sh
 ```
 
 Build only one package, or select several:
 
 ```sh
-scripts/run-docker-build.sh edk2-shell-aa64
-scripts/run-docker-build.sh qmic-git pd-mapper-git
-scripts/run-docker-build.sh --help
+scripts/host/run-docker-build.sh edk2-shell-aa64
+scripts/host/run-docker-build.sh qmic-git pd-mapper-git
+scripts/host/run-docker-build.sh --help
 ```
 
 Manually refresh the Docker image with the latest base image and installed
 Arch Linux ARM packages:
 
 ```sh
-scripts/refresh-docker-image.sh
+scripts/host/refresh-docker-image.sh
 ```
 
 This rebuilds all image layers, so the refresh itself can take a while. Later
@@ -79,8 +79,8 @@ run the signing script after building and rebuild the database afterward to
 include the new signatures:
 
 ```sh
-scripts/sign-packages.sh --key 041A82E390EAD451
-scripts/rebuild-repo.sh
+scripts/host/sign-packages.sh --key 041A82E390EAD451
+scripts/host/rebuild-repo.sh
 ```
 
 ## Use The Repository
@@ -122,7 +122,7 @@ After manually removing unwanted package archives and their signatures from
 `packages/repo`, regenerate the repository database using the existing Docker image:
 
 ```sh
-scripts/rebuild-repo.sh
+scripts/host/rebuild-repo.sh
 ```
 
 This indexes all remaining package archives without rebuilding packages or changing
@@ -132,7 +132,7 @@ repository directory.
 Package archives in `packages/repo` can be signed after they are built:
 
 ```sh
-scripts/sign-packages.sh --key 041A82E390EAD451
+scripts/host/sign-packages.sh --key 041A82E390EAD451
 ```
 
 Export the public key file that users import with `pacman-key`:
@@ -143,6 +143,20 @@ gpg --armor --export 041A82E390EAD451 > yoga-alarm-packaging.pub
 
 Only publish the exported public key. Do not publish `~/.gnupg`, secret-key
 exports, or files created with `gpg --export-secret-keys`.
+
+## Script Layout and Tests
+
+Host commands live in `scripts/host/`, container scripts in `scripts/docker/`,
+and sourced helpers in `scripts/lib/`. Their tests live in `scripts/tests/`.
+
+Run the workflow tests (requires `bsdtar`):
+
+```sh
+python3 -m unittest discover -s scripts/tests -v
+```
+
+Set `YOGA_TEST_DOCKER=1` to also run the ARM64 integration test against the
+existing `archlinuxarm-build` image.
 
 ## Documentation
 

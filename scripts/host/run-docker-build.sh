@@ -5,8 +5,8 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "${PROJECT_ROOT}/scripts/package-common.sh"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${PROJECT_ROOT}/scripts/lib/package-common.sh"
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
     build_usage "$0"
     exit 0
@@ -56,7 +56,7 @@ docker run --rm -it \
     -v "${PROJECT_ROOT}/scripts:/scripts:ro" \
     -v "${PROJECT_ROOT}/packages:/packages" \
     "${IMAGE_NAME}" \
-    /scripts/build-packages.sh "${SELECTED_PACKAGES[@]}"
+    /scripts/docker/build-packages.sh "${SELECTED_PACKAGES[@]}"
 
 log "Build completed successfully!"
 log "The following packages were created:"

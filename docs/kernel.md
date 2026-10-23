@@ -41,7 +41,7 @@ packages remain necessary.
 
 Run the commands below from the repository root. Use the existing
 `archlinuxarm-build` Docker image (built from the root
-`Dockerfile`) and the same ARM64 emulation setup as `scripts/run-docker-build.sh`:
+`Dockerfile`) and the same ARM64 emulation setup as `scripts/host/run-docker-build.sh`:
 
 ```sh
 docker run --privileged --rm tonistiigi/binfmt --install arm64

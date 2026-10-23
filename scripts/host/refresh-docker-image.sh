@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 IMAGE_NAME="${IMAGE_NAME:-archlinuxarm-build}"
 PLATFORM="${PLATFORM:-linux/arm64}"
 
@@ -43,4 +43,4 @@ docker build --pull --no-cache \
     -f "${PROJECT_ROOT}/Dockerfile" \
     "${PROJECT_ROOT}"
 
-echo "==> Image refreshed. Run scripts/run-docker-build.sh to build packages."
+echo "==> Image refreshed. Run scripts/host/run-docker-build.sh to build packages."

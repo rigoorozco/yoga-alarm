@@ -6,8 +6,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/package-common.sh"
-source "${SCRIPT_DIR}/repo-common.sh"
+source "${SCRIPT_DIR}/../lib/package-common.sh"
+source "${SCRIPT_DIR}/../lib/repo-common.sh"
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
     build_usage "$0"
     exit 0

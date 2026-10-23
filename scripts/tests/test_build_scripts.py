@@ -1,5 +1,5 @@
 """Workflow checks using real package archives and mocked Arch/Docker commands.
-Run with: python3 -m unittest discover -s tests -v
+Run with: python3 -m unittest discover -s scripts/tests -v
 """
 import json
 import os
@@ -11,7 +11,7 @@ import tempfile
 import unittest
 import io
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / 'scripts'
 
 MOCK = r'''#!/usr/bin/env python3
@@ -101,12 +101,12 @@ class BuildScriptsTest(unittest.TestCase):
         return result
 
     def build(self, *names, success=True):
-        return self.run_command(['bash', str(SCRIPTS / 'build-packages.sh'), *names], success)
+        return self.run_command(['bash', str(SCRIPTS / 'docker' / 'build-packages.sh'), *names], success)
 
     def update(self, publish=False, success=True):
         return self.run_command(['bash', '-euo', 'pipefail', '-c',
                                  'source "$1"; update_repo "$2" "${3:-}"', 'test',
-                                 str(SCRIPTS / 'repo-common.sh'), str(self.repo),
+                                 str(SCRIPTS / 'lib' / 'repo-common.sh'), str(self.repo),
                                  *([str(self.incoming)] if publish else [])], success)
 
     def archive(self, directory, name='demo', version='1.0-1', arch='aarch64', ext='gz'):
@@ -151,12 +151,14 @@ class BuildScriptsTest(unittest.TestCase):
         self.build('unknown', success=False)
         self.assertFalse(self.log.exists())
         self.assertEqual(self.conf.read_text(), '[options]\n')
-        self.run_command(['bash', str(SCRIPTS / 'run-docker-build.sh'), 'unknown'], False)
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'unknown'], False)
         self.assertFalse(self.log.exists())
 
     def test_help_without_docker(self):
-        for script in ('build-packages.sh', 'run-docker-build.sh'):
-            self.assertIn('linux-yoga', self.run_command(['bash', str(SCRIPTS / script), '--help']).stdout)
+        for script in (SCRIPTS / 'docker' / 'build-packages.sh',
+                       SCRIPTS / 'host' / 'run-docker-build.sh'):
+            self.assertIn('linux-yoga', self.run_command(['bash', str(script), '--help']).stdout)
+
         self.assertFalse(self.log.exists())
 
     def test_missing_dependency_built_once(self):
@@ -244,10 +246,10 @@ class BuildScriptsTest(unittest.TestCase):
         self.assertFalse(self.log.exists())
 
     def test_host_forwarding_and_paths_outside_project(self):
-        self.run_command(['bash', str(SCRIPTS / 'run-docker-build.sh'),
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'),
                           'edk2-shell-aa64', 'qmic-git', 'edk2-shell-aa64'])
         docker = self.commands('docker')
-        self.assertEqual(docker[-1][-3:], ['/scripts/build-packages.sh', 'qmic-git', 'edk2-shell-aa64'])
+        self.assertEqual(docker[-1][-3:], ['/scripts/docker/build-packages.sh', 'qmic-git', 'edk2-shell-aa64'])
         self.assertIn(str(ROOT / 'packages') + ':/packages', docker[-1])
         self.assertEqual(docker[-2][-1], str(ROOT))
 
@@ -268,7 +270,7 @@ class BuildScriptsTest(unittest.TestCase):
                        '--entrypoint', '/bin/bash',
                        os.environ.get('IMAGE_NAME', 'archlinuxarm-build'),
                        '-euo', 'pipefail', '-c',
-                       'source /scripts/repo-common.sh; ' + script]
+                       'source /scripts/lib/repo-common.sh; ' + script]
             result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
             if success:
@@ -298,10 +300,10 @@ class BuildScriptsTest(unittest.TestCase):
 
     def test_rebuild_mounts_shared_helper(self):
         self.env['REPO_DIR'] = str(self.repo)
-        self.run_command(['bash', str(SCRIPTS / 'rebuild-repo.sh')])
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'rebuild-repo.sh')])
         call = self.commands('docker')[0]
         self.assertIn('type=bind,source=' + str(SCRIPTS) + ',target=/scripts,readonly', call)
-        self.assertIn('source /scripts/repo-common.sh', call[-1])
+        self.assertIn('source /scripts/lib/repo-common.sh', call[-1])
 
 
 if __name__ == '__main__':

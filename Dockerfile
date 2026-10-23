@@ -19,7 +19,7 @@ USER build
 RUN mkdir -p "$HOME/src"
 WORKDIR /usr/local/build/src
 
-COPY scripts/docker-entrypoint.sh /opt/bin/docker-entrypoint.sh
+COPY scripts/docker/docker-entrypoint.sh /opt/bin/docker-entrypoint.sh
 ENTRYPOINT ["/opt/bin/docker-entrypoint.sh"]
 
 CMD sudo -E pacman -Sy && \

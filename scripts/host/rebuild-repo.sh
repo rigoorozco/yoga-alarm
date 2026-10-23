@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPO_DIR="${REPO_DIR:-${PROJECT_ROOT}/packages/repo}"
 IMAGE_NAME="${IMAGE_NAME:-archlinuxarm-build}"
 PLATFORM="${PLATFORM:-linux/arm64}"
@@ -34,6 +34,6 @@ docker run --rm \
     --workdir /repo \
     --entrypoint /bin/bash \
     "${IMAGE_NAME}" -euo pipefail -c '
-        source /scripts/repo-common.sh
+        source /scripts/lib/repo-common.sh
         update_repo /repo
     '
