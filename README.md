@@ -42,6 +42,19 @@ scripts/run-docker-build.sh qmic-git pd-mapper-git
 scripts/run-docker-build.sh --help
 ```
 
+Manually refresh the Docker image with the latest base image and installed
+Arch Linux ARM packages:
+
+```sh
+scripts/refresh-docker-image.sh
+```
+
+This rebuilds all image layers, so the refresh itself can take a while. Later
+package builds reuse the updated image and only upgrade packages changed since
+the refresh. Run it periodically rather than before every build. It does not
+build packages or update `packages/repo`. Like the build launcher, it supports
+`IMAGE_NAME` and `PLATFORM` environment overrides and registers ARM64 emulation.
+
 The scripts can be called from any directory. Package names are validated before
 Docker starts, duplicates are ignored, and builds run in dependency order.
 For `pd-mapper-git` and `tqftpserv-git`, a suitable installed or repository
