@@ -62,7 +62,7 @@ build_and_publish() {
     cd "${pkgdir}"
 
     # Build and install missing deps via pacman
-    makepkg -s --nodeps --noconfirm -f
+    makepkg --cleanbuild -s --nodeps --noconfirm -f
 
     # Copy binary package archives into local repo (skip sig/src packages)
     shopt -s nullglob
