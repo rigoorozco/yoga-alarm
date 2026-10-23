@@ -20,7 +20,10 @@ Configuration is merged in this order: upstream ARM64 `defconfig`, `arch.config`
 `yoga.config`, then `trim.config`. `olddefconfig` resolves upstream dependencies.
 The local Yoga fragment preserves supported platform settings and package policy
 previously supplied by downstream `sdm845.config` and `misc.config`. The kernel
-release suffix is `-yoga`; the userspace `pd-mapper` service remains in use.
+release suffix is `-yoga`. Starting with package release `7.3-4`, QRTR and the
+Qualcomm protection-domain mapper are built into the kernel
+(`CONFIG_QRTR=y`, `CONFIG_QCOM_PD_MAPPER=y`), replacing the userspace
+`pd-mapper` service.
 
 ## Compatibility
 
@@ -54,6 +57,41 @@ docker run --rm --platform linux/arm64 \
 The image must already contain the dependencies declared in `PKGBUILD`.
 This command creates local packages; it does not sign them or publish a release.
 
+## Switching to the kernel protection-domain mapper
+
+Install the `7.3-4` or newer kernel and matching headers using the recovery
+precautions below. Confirm `/boot` is mounted and initramfs generation succeeds.
+Before rebooting into the new kernel, disable the userspace service:
+
+```sh
+sudo systemctl disable pd-mapper.service
+sudo reboot
+```
+
+Do not use `--now`: the currently running kernel may still need the daemon.
+After reboot, check:
+
+```sh
+uname -r
+zgrep -E 'CONFIG_(QRTR|QCOM_PD_MAPPER)=' /proc/config.gz
+systemctl is-active pd-mapper.service
+journalctl -b -k | grep -Ei 'mapper|pdr|remoteproc|qmi'
+```
+
+Both configuration options should be `y`, and the service should be inactive.
+The built-in driver does not appear in `lsmod`. Check audio playback and capture,
+Wi-Fi, Bluetooth, suspend/resume, and the modem if used. Hardware acceptance of
+this change remains pending until tested on the Yoga.
+
+Keep `pd-mapper-git` installed until verification passes; afterward it can be
+removed with `sudo pacman -R pd-mapper-git`. Firmware, `tqftpserv`, and other
+Qualcomm services remain necessary for their separate functions. This repository
+retains the userspace mapper package for older kernels and recovery.
+
+To revert, restore the saved kernel packages and boot files, regenerate the old
+kernel's initramfs, and run `sudo systemctl enable pd-mapper.service` before
+rebooting into the old kernel.
+
 ## Validation of this migration
 
 Linux 7.3 `Image`, `Image.gz`, modules and all enabled DTBs were cross-compiled
@@ -81,6 +119,14 @@ the [RTC and UEFI guide](rtc.md). Both AArch64 package archives were built from 
 results; an external module also built against the extracted headers archive
 in the ARM64 Docker image. On 2026-10-23 the user confirmed QSEECOM variable
 access and a correct RTC date on the Yoga before NTP synchronization.
+
+Package release `7.3-4` was cross-built with GCC 13.3.0 after applying the
+current six local patches and merging the package configuration fragments.
+`Image`, `Image.gz`, modules, and enabled DTBs built successfully. The resolved
+configuration retains `CONFIG_QRTR=y` and `CONFIG_QCOM_PD_MAPPER=y`, and the
+mapper driver is linked into `vmlinux`. All package source checksums passed.
+ARM64 package creation and hardware verification of this release remain pending:
+the validation session could not access the Docker socket.
 
 ## Hardware acceptance and recovery
 

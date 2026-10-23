@@ -8,7 +8,7 @@ _srcname=linux-7.3
 _kernelname=${pkgbase#linux}
 _desc="AArch64 multi-platform"
 pkgver=7.3
-pkgrel=3
+pkgrel=4
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -29,7 +29,7 @@ source=("https://cdn.kernel.org/pub/linux/kernel/v7.x/${_srcname}.tar.xz"
         '0006-arm64-dts-qcom-yoga-c630-uefi-rtc-offset.patch')
 sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
             '960f6dee3f1fb300f93e0441545bbdc50c3b088d1959e89af1d7fb99b3047aa1'
-            '547083b7eb524cf03c2f669a1be00f3b7224fea48bc17edc6a0b069232cbb06b'
+            '067bc269fce72018d57120eeb2264d7bcb865e1ced52e9d658d774abb5d0b05b'
             'f71f3f9ff9160cb7be2d5e1ee19c03d68c08c27417afa6b6ee3eedaf759de4a6'
             '6837b3e2152f142f3fff595c6cbd03423f6e7b8d525aac8ae3eb3b58392bd255'
             '452b8d4d71e1565ca91b1bebb280693549222ef51c47ba8964e411b2d461699c'
