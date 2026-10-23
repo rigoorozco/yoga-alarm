@@ -14,7 +14,7 @@ export PACKAGER="Rigo Orozco Díaz <rigo.orozco.d@gmail.com>"
 export GPGKEY="0x0123456789abcdef"
 export MAKEFLAGS="ARCH=arm64"
 
-sudo chmod -R 777 "${PKGS_DIR}"
+sudo chmod -R a+rwX "${PKGS_DIR}"
 mkdir -p "${LOCAL_REPO_DIR}"
 
 # Helper: rebuild local repo database from all built packages
