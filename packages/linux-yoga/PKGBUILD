@@ -64,15 +64,15 @@ build() {
   cd ${_srcname}
 
   # get kernel version
-  ccache make ${MAKEFLAGS} olddefconfig
-  ccache make ${MAKEFLAGS} prepare
-  ccache make ${MAKEFLAGS} -s kernelrelease > version
+  make ${MAKEFLAGS} olddefconfig
+  make ${MAKEFLAGS} prepare
+  make ${MAKEFLAGS} -s kernelrelease > version
 
   # build!
   unset LDFLAGS
-  ccache make -j $(nproc) ${MAKEFLAGS} Image Image.gz modules
+  make -j $(nproc) ${MAKEFLAGS} Image Image.gz modules
   # Generate device tree blobs with symbols to support applying device tree overlays in U-Boot
-  ccache make -j $(nproc) ${MAKEFLAGS} DTC_FLAGS="-@" dtbs
+  make -j $(nproc) ${MAKEFLAGS} DTC_FLAGS="-@" dtbs
 }
 
 _package() {

@@ -11,6 +11,10 @@ RUN pacman -Syu --needed --noconfirm --disable-sandbox base-devel git archlinuxa
     meson linux-headers dtc ccache cmake gawk && \
     useradd -d /usr/local/build -m -G wheel build
 
+# makepkg enables the compiler wrappers for all package builds.
+RUN printf '\n# Enable compiler caching for package builds.\nBUILDENV+=(ccache)\n' >> /etc/makepkg.conf && \
+    install -d -o build -g build /usr/local/build/.cache/ccache
+
 USER build
 
 VOLUME /usr/local/build/src

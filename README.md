@@ -42,6 +42,25 @@ scripts/host/run-docker-build.sh qmic-git pd-mapper-git
 scripts/host/run-docker-build.sh --help
 ```
 
+The Docker image enables makepkg's built-in ccache support for package builds.
+The cache is stored in the Docker volume `yoga-alarm-ccache`
+so it survives container removal and image rebuilds. The first build fills the
+cache; later builds can reuse matching compiler outputs. The cache defaults to
+a 10 GB limit. Override the limit or volume name when launching a build:
+
+```sh
+CCACHE_MAXSIZE=20G CCACHE_VOLUME=yoga-alarm-ccache scripts/host/run-docker-build.sh linux-yoga
+```
+
+Inspect cache usage and hit statistics after a build:
+
+```sh
+docker run --rm --platform linux/arm64 \
+  --mount type=volume,source=yoga-alarm-ccache,target=/usr/local/build/.cache/ccache \
+  -e CCACHE_DIR=/usr/local/build/.cache/ccache \
+  archlinuxarm-build ccache --show-stats
+```
+
 Manually refresh the Docker image with the latest base image and installed
 Arch Linux ARM packages:
 

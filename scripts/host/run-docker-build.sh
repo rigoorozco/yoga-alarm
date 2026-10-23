@@ -15,6 +15,8 @@ select_packages "$@"
 IMAGE_NAME="${IMAGE_NAME:-archlinuxarm-build}"
 PLATFORM="${PLATFORM:-linux/arm64}"
 BASE_IMAGE_TEST="${BASE_IMAGE_TEST:-agners/archlinuxarm:latest}"
+CCACHE_VOLUME="${CCACHE_VOLUME:-yoga-alarm-ccache}"
+CCACHE_MAXSIZE="${CCACHE_MAXSIZE:-10G}"
 
 log() {
   echo "==> $*"
@@ -53,6 +55,9 @@ log "Running Docker build.."
 docker run --rm -it \
     --privileged \
     --platform "${PLATFORM}" \
+    --mount "type=volume,source=${CCACHE_VOLUME},target=/usr/local/build/.cache/ccache" \
+    -e CCACHE_DIR=/usr/local/build/.cache/ccache \
+    -e "CCACHE_MAXSIZE=${CCACHE_MAXSIZE}" \
     -v "${PROJECT_ROOT}/scripts:/scripts:ro" \
     -v "${PROJECT_ROOT}/packages:/packages" \
     "${IMAGE_NAME}" \
