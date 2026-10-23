@@ -1,15 +1,14 @@
-FROM agners/archlinuxarm:latest
+FROM menci/archlinuxarm:base-devel
 
 MAINTAINER Rigo Orozco Díaz <rigo.orozco.d@gmail.com>
 
 COPY sudoers.d/build /etc/sudoers.d/
 
-RUN pacman-key --init && \
-    pacman-db-upgrade && \
-    update-ca-trust && \
-    pacman -Syyu --noconfirm base-devel git archlinux-keyring curl tar \
+# The base includes build tools and an initialized Arch Linux ARM keyring.
+# ARM emulation/build kernels may lack Landlock support for pacman's downloader.
+RUN pacman -Syu --needed --noconfirm --disable-sandbox base-devel git archlinuxarm-keyring curl tar \
     gcc devtools namcap xmlto docbook-xsl inetutils bc uboot-tools \
-    meson linux-headers dtc ccache cmake awk && \
+    meson linux-headers dtc ccache cmake gawk && \
     useradd -d /usr/local/build -m -G wheel build
 
 USER build
@@ -22,6 +21,6 @@ WORKDIR /usr/local/build/src
 COPY scripts/docker/docker-entrypoint.sh /opt/bin/docker-entrypoint.sh
 ENTRYPOINT ["/opt/bin/docker-entrypoint.sh"]
 
-CMD sudo -E pacman -Sy && \
+CMD sudo -E pacman -Sy --disable-sandbox && \
     makepkg -sfc --noconfirm --needed && \
     makepkg --printsrcinfo > .SRCINFO
