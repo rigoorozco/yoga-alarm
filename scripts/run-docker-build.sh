@@ -1,10 +1,17 @@
 #!/bin/bash
 
-# This script is meant to be run on the host machine
+# Set up ARM64 emulation, build the Docker image, and launch package builds.
+# Run on the host; invokes build-packages.sh inside Docker.
 
 set -euo pipefail
 
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${PROJECT_ROOT}/scripts/package-common.sh"
+if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
+    build_usage "$0"
+    exit 0
+fi
+select_packages "$@"
 IMAGE_NAME="${IMAGE_NAME:-archlinuxarm-build}"
 PLATFORM="${PLATFORM:-linux/arm64}"
 BASE_IMAGE_TEST="${BASE_IMAGE_TEST:-agners/archlinuxarm:latest}"
@@ -40,17 +47,17 @@ case "${ARCH_OUT}" in
 esac
 
 log "Building ARM64 Arch Linux image: ${IMAGE_NAME}"
-docker build --platform "${PLATFORM}" -t "${IMAGE_NAME}" -f Dockerfile .
+docker build --platform "${PLATFORM}" -t "${IMAGE_NAME}" -f "${PROJECT_ROOT}/Dockerfile" "${PROJECT_ROOT}"
 
 log "Running Docker build.."
 docker run --rm -it \
     --privileged \
     --platform "${PLATFORM}" \
-    -v $(pwd)/scripts:/scripts \
-    -v $(pwd)/packages:/packages \
+    -v "${PROJECT_ROOT}/scripts:/scripts:ro" \
+    -v "${PROJECT_ROOT}/packages:/packages" \
     "${IMAGE_NAME}" \
-    /scripts/build-packages.sh
+    /scripts/build-packages.sh "${SELECTED_PACKAGES[@]}"
 
-log "Build competed successfully!"
+log "Build completed successfully!"
 log "The following packages were created:"
-find ${PROJECT_ROOT}/packages/repo -name "*.pkg.tar.xz"
+find "${PROJECT_ROOT}/packages/repo" -maxdepth 1 -type f -name "*.pkg.tar.*" ! -name "*.sig"

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Export the signing public key and publish repository assets to GitHub releases.
+# Run on the host with GPG and the GitHub CLI.
+
 set -euo pipefail
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"

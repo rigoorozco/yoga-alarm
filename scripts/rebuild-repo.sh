@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Rebuild the pacman repository databases from existing package archives.
+# Run on the host; executes repo-common.sh helpers inside Docker.
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,26 +30,10 @@ docker run --rm \
     --platform "${PLATFORM}" \
     --user "$(id -u):$(id -g)" \
     --mount "type=bind,source=${REPO_DIR},target=/repo" \
+    --mount "type=bind,source=${PROJECT_ROOT}/scripts,target=/scripts,readonly" \
     --workdir /repo \
     --entrypoint /bin/bash \
     "${IMAGE_NAME}" -euo pipefail -c '
-        shopt -s nullglob
-        packages=()
-        for file in *.pkg.tar.*; do
-            [[ "$file" == *.sig ]] && continue
-            packages+=("/repo/$file")
-        done
-        if (( ${#packages[@]} == 0 )); then
-            echo "ERROR: No package archives found; database left unchanged." >&2
-            exit 1
-        fi
-
-        # Build separately so a failed repo-add leaves the current database intact.
-        staging=$(mktemp -d /repo/.rebuild-repo.XXXXXX)
-        trap '\''rm -rf -- "$staging"'\'' EXIT
-        repo-add "$staging/yoga-alarm.db.tar.gz" "${packages[@]}"
-
-        rm -f yoga-alarm.db* yoga-alarm.files*
-        mv "$staging"/yoga-alarm.* /repo/
-        echo "Repository database rebuilt from ${#packages[@]} package archives."
+        source /scripts/repo-common.sh
+        update_repo /repo
     '

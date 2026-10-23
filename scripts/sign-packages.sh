@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# Create detached GPG signatures for existing pacman package archives.
+# Run on the host using the local GPG signing key.
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

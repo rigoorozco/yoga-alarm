@@ -28,19 +28,46 @@ packages/repo
 
 ## Build
 
-Build packages from the host using Docker:
+Build every package from the host using Docker (including the kernel):
 
 ```sh
 scripts/run-docker-build.sh
 ```
 
-The Docker build runs an ARM64 Arch Linux environment and writes package
-artifacts into `packages/repo`.
-
-The build script currently controls which packages are built in:
+Build only one package, or select several:
 
 ```sh
-scripts/build-packages.sh
+scripts/run-docker-build.sh edk2-shell-aa64
+scripts/run-docker-build.sh qmic-git pd-mapper-git
+scripts/run-docker-build.sh --help
+```
+
+The scripts can be called from any directory. Package names are validated before
+Docker starts, duplicates are ignored, and builds run in dependency order.
+For `pd-mapper-git` and `tqftpserv-git`, a suitable installed or repository
+`qrtr-git` package is reused; otherwise it is built first. Other dependencies
+are installed using pacman.
+
+The Docker build runs an ARM64 Arch Linux environment and writes package
+artifacts into `packages/repo`. Only outputs from the current build are published,
+including split packages such as the kernel headers. A successful build replaces
+archives with matching filenames and removes older releases of the same package
+and architecture. Other packages and architectures are preserved. Failed builds
+or database generation leave previously published package archives intact.
+
+The release number (the `-1` in `name-version-1-aarch64.pkg.tar.*`) comes from
+`pkgrel` in the PKGBUILD. The build scripts do not increment it. Rebuilding the
+same version and release overwrites it; changing `pkgver` or `pkgrel` produces a
+new filename. Increment `pkgrel` deliberately when installed systems should pick
+up a changed build through a normal upgrade.
+
+Builds do not sign packages. Replacing an archive removes its previous signature;
+run the signing script after building and rebuild the database afterward to
+include the new signatures:
+
+```sh
+scripts/sign-packages.sh --key 041A82E390EAD451
+scripts/rebuild-repo.sh
 ```
 
 ## Use The Repository
