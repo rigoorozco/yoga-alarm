@@ -1,4 +1,5 @@
 """Workflow checks using real package archives and mocked Arch/Docker commands.
+Run on the host to test package builds, Docker routing and repository updates.
 Run with: python3 -m unittest discover -s scripts/tests -v
 """
 import json
@@ -10,6 +11,7 @@ import tarfile
 import tempfile
 import unittest
 import io
+import fcntl
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / 'scripts'
@@ -27,8 +29,12 @@ if name == 'pacman':
 if name == 'vercmp':
     print(1 if args[0] != '1.0-1' else -1)
 if name == 'docker':
+    if args[:1] == ['info']:
+        print(os.environ.get('DOCKER_ARCH', 'x86_64'))
     if args[-2:] == ['uname', '-m']:
         print('aarch64')
+    if os.environ.get('FAIL_DOCKER_STAGE') and args[-1:] == [os.environ['FAIL_DOCKER_STAGE']]:
+        sys.exit(1)
 if name == 'makepkg':
     package = pathlib.Path.cwd().name
     with open(os.environ['BUILD_LOG'], 'a') as f:
@@ -252,6 +258,74 @@ class BuildScriptsTest(unittest.TestCase):
         self.assertEqual(docker[-1][-3:], ['/scripts/docker/build-packages.sh', 'qmic-git', 'edk2-shell-aa64'])
         self.assertIn(str(ROOT / 'packages') + ':/packages', docker[-1])
         self.assertEqual(docker[-2][-1], str(ROOT))
+
+    def test_kernel_only_uses_cross_and_arm64_packaging(self):
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'linux-yoga'])
+        calls = self.commands('docker')
+        stages = [c for c in calls if '/scripts/docker/build-kernel-cross.sh' in c]
+        self.assertEqual([c[-1] for c in stages], ['compile', 'package'])
+        self.assertIn('linux/amd64', stages[0])
+        self.assertIn('linux/arm64', stages[1])
+        self.assertFalse(any('/scripts/docker/build-packages.sh' in c for c in calls))
+        self.assertTrue(any(str(ROOT / 'Dockerfile.cross') in c for c in calls))
+
+    def test_mixed_selection_routes_kernel_separately(self):
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'),
+                          'linux-yoga', 'qmic-git'])
+        calls = self.commands('docker')
+        ordinary = next(c for c in calls if '/scripts/docker/build-packages.sh' in c)
+        self.assertEqual(ordinary[-1], 'qmic-git')
+        self.assertNotIn('linux-yoga', ordinary)
+        self.assertEqual(calls[-1][-1], 'package')
+
+    def test_default_selection_cross_compiles_kernel(self):
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh')])
+        calls = self.commands('docker')
+        ordinary = next(c for c in calls if '/scripts/docker/build-packages.sh' in c)
+        self.assertNotIn('linux-yoga', ordinary)
+        self.assertIn('pd-mapper-git', ordinary)
+        self.assertEqual(calls[-1][-1], 'package')
+
+    def test_emulated_kernel_fallback(self):
+        self.env['KERNEL_BUILD_MODE'] = 'emulated'
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'linux-yoga'])
+        calls = self.commands('docker')
+        self.assertEqual(calls[-1][-2:], ['/scripts/docker/build-packages.sh', 'linux-yoga'])
+        self.assertFalse(any(str(ROOT / 'Dockerfile.cross') in c for c in calls))
+
+    def test_kernel_workspace_lock_blocks_cross_and_emulated_builds(self):
+        with open(ROOT / 'packages/linux-yoga/.kernel-build.lock', 'a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            for mode in ('cross', 'emulated'):
+                self.env['KERNEL_BUILD_MODE'] = mode
+                result = self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'),
+                                           'linux-yoga'], False)
+                self.assertIn('workspace lock', result.stderr)
+        self.assertFalse(self.log.exists())
+
+    def test_invalid_kernel_mode_before_docker(self):
+        self.env['KERNEL_BUILD_MODE'] = 'typo'
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'linux-yoga'], False)
+        self.assertFalse(self.log.exists())
+
+    def test_cross_requires_x86_but_ordinary_builds_do_not(self):
+        self.env['DOCKER_ARCH'] = 'aarch64'
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'linux-yoga'], False)
+        self.assertEqual(len(self.commands('docker')), 1)
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'qmic-git'])
+
+    def test_cross_failure_does_not_start_packaging(self):
+        self.env['FAIL_DOCKER_STAGE'] = 'compile'
+        self.run_command(['bash', str(SCRIPTS / 'host' / 'run-docker-build.sh'), 'linux-yoga'], False)
+        self.assertEqual(self.commands('docker')[-1][-1], 'compile')
+
+    def test_refresh_both_images_and_arm64_only(self):
+        script = ['bash', str(SCRIPTS / 'host' / 'refresh-docker-image.sh')]
+        self.run_command(script)
+        self.assertTrue(any(str(ROOT / 'Dockerfile.cross') in c for c in self.commands('docker')))
+        self.log.unlink()
+        self.run_command([*script, '--arm64-only'])
+        self.assertFalse(any(str(ROOT / 'Dockerfile.cross') in c for c in self.commands('docker')))
 
     @unittest.skipUnless(os.environ.get('YOGA_TEST_DOCKER') == '1',
                          'set YOGA_TEST_DOCKER=1 to test the existing ARM64 image')

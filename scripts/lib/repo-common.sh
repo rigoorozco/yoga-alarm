@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Provide archive selection and pacman repository update helpers.
-# Sourced inside Docker by build-packages.sh and the rebuild-repo.sh container command.
+# Sourced inside Docker by build-packages.sh, build-kernel-cross.sh and rebuild-repo.sh.
 # Callers use set -euo pipefail.
 
 LOCAL_REPO_NAME=yoga-alarm

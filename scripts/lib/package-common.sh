@@ -17,6 +17,8 @@ BUILD_ORDER=(
 build_usage() {
     printf 'Usage: %s [PACKAGE ...]\n\nNo arguments builds all packages in dependency order.\nPackages:\n' "$1"
     printf '  %s\n' "${BUILD_ORDER[@]}"
+    printf '\nHost launcher: KERNEL_BUILD_MODE=cross (default) or emulated.\n'
+    printf 'Cross builds use CROSS_IMAGE_NAME=archlinuxarm-kernel-cross on x86 Docker.\n'
 }
 
 select_packages() {

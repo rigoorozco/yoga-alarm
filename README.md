@@ -42,7 +42,27 @@ scripts/host/run-docker-build.sh qmic-git pd-mapper-git
 scripts/host/run-docker-build.sh --help
 ```
 
+On an x86 Docker host, `linux-yoga` is cross-compiled in an Arch x86 container
+using the ARM64 cross toolchain. The ARM64 container prepares executable headers
+tools, creates both kernel packages and checks them by building an external
+module before publishing. Other packages still build in the ARM64 container.
+Kernel sources are prepared cleanly on each run; ccache survives between runs.
+
+To use the fully emulated kernel build instead:
+
+```sh
+KERNEL_BUILD_MODE=emulated scripts/host/run-docker-build.sh linux-yoga
+```
+
+Cross mode is the default and requires x86 Docker. Set `KERNEL_BUILD_MODE=emulated`
+on other hosts. `CROSS_IMAGE_NAME` overrides the default
+`archlinuxarm-kernel-cross` image; `IMAGE_NAME` and `PLATFORM` still select the
+ARM64 image and platform. A workspace lock prevents concurrent kernel builds
+through the launcher. See [kernel build details](docs/kernel.md#build-only-the-kernel)
+for the stage handoff, validation and logs.
+
 The Docker image enables makepkg's built-in ccache support for package builds.
+The x86 cross-build stage uses the same compiler wrappers and cache.
 The cache is stored in the Docker volume `yoga-alarm-ccache`
 so it survives container removal and image rebuilds. The first build fills the
 cache; later builds can reuse matching compiler outputs. The cache defaults to
@@ -68,11 +88,15 @@ Arch Linux ARM packages:
 scripts/host/refresh-docker-image.sh
 ```
 
+This refreshes both the ARM64 and x86 cross-build images. Use
+`scripts/host/refresh-docker-image.sh --arm64-only` to refresh just the ARM64 image,
+including on hosts that cannot run the x86 image natively.
 This rebuilds all image layers, so the refresh itself can take a while. Later
 package builds reuse the updated image and only upgrade packages changed since
 the refresh. Run it periodically rather than before every build. It does not
 build packages or update `packages/repo`. Like the build launcher, it supports
-`IMAGE_NAME` and `PLATFORM` environment overrides and registers ARM64 emulation.
+`IMAGE_NAME`, `PLATFORM` and `CROSS_IMAGE_NAME` environment overrides and registers
+ARM64 emulation.
 
 The scripts can be called from any directory. Package names are validated before
 Docker starts, duplicates are ignored, and builds run in dependency order.

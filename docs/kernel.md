@@ -42,6 +42,51 @@ packages remain necessary.
 
 ## Build only the kernel
 
+The normal launcher cross-compiles the kernel on x86 Docker hosts:
+
+```sh
+scripts/host/run-docker-build.sh linux-yoga
+```
+
+The x86 image is defined in `Dockerfile.cross` and uses Arch's
+`aarch64-linux-gnu-gcc` and cross binutils. Source checksums, patches and
+configuration merging come from the kernel PKGBUILD, whose `build()` function
+also supplies the compilation targets. Preparation starts from a clean source
+tree; compiled objects are not reused between runs, but ccache is persistent.
+
+After compilation, the ARM64 image prepares a separate source tree to rebuild
+the executable tools required by the headers package. Packaging reuses the
+completed kernel tree with makepkg's repackage mode. Only headers tools are
+replaced; the cross-built configuration, generated headers, images, modules and
+symbol information remain intact. Input and output hashes guard this handoff.
+
+Both archives must have matching package versions and ARM64 metadata. Validation
+checks the kernel image, Yoga DTB, module and headers-tool architectures, then
+compiles an external module against the extracted headers inside the ARM64
+container. Compiler versions are recorded and may differ; compiler warnings are
+visible, and failed validation prevents either package from being published.
+This does not replace boot and hardware testing on the Yoga.
+
+Logs, compiler versions, hash manifests and stage timings are retained under
+`packages/linux-yoga/.cross-build/`. A new cross build replaces this directory.
+The launcher holds `.kernel-build.lock` across the workflow. Container stage
+scripts are internal entrypoints and must not be run concurrently or against a
+workspace being edited. Failed cross builds do not automatically fall back.
+
+To use the original fully emulated build and packaging workflow:
+
+```sh
+KERNEL_BUILD_MODE=emulated scripts/host/run-docker-build.sh linux-yoga
+```
+
+For integration acceptance, run a clean cross build twice and compare ccache
+statistics and stage timings. Check the logs for the external-module validation
+before installing the resulting kernel and headers. To exercise the fallback,
+run the emulated command separately. The scripted tests use mocked compilation;
+they do not establish that a particular repository toolchain builds the kernel.
+
+### Manual fully emulated build
+
 Run the commands below from the repository root. Use the existing
 `archlinuxarm-build` Docker image (built from the root
 `Dockerfile`) and the same ARM64 emulation setup as `scripts/host/run-docker-build.sh`:
@@ -56,6 +101,25 @@ docker run --rm --platform linux/arm64 \
 
 The image must already contain the dependencies declared in `PKGBUILD`.
 This command creates local packages; it does not sign them or publish a release.
+
+### Module metadata and directory permissions
+
+Kernel packages omit depmod-generated indexes, including `modules.weakdep`.
+The post-transaction depmod hook generates them on the Yoga before the initramfs
+hook runs. Kernel build outputs such as `modules.order`, `modules.builtin`,
+`modules.builtin.modinfo` and `modules.builtin.ranges` remain packaged.
+Rebuild the package to apply this fix; previously created archives are unchanged.
+
+Both kernel packages normalize directories to mode `755`, regardless of build
+workspace permissions. For existing headers directories with mode `775`, run
+this once on the Yoga to resolve the pacman directory-permissions warnings:
+
+```sh
+sudo find /usr/lib/modules/7.3.0-yoga/build -type d -exec chmod 755 {} +
+```
+
+Use the matching kernel release directory if installing another version. This
+changes directory modes only and preserves executable permissions on files.
 
 ## Switching to the kernel protection-domain mapper
 

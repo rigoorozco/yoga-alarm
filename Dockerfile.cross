@@ -1,0 +1,15 @@
+FROM archlinux:base-devel
+
+COPY sudoers.d/build /etc/sudoers.d/
+
+RUN pacman -Syu --needed --noconfirm --disable-sandbox \
+    aarch64-linux-gnu-gcc aarch64-linux-gnu-binutils \
+    git xmlto docbook-xsl kmod inetutils bc uboot-tools dtc ccache \
+    openssl libelf pahole python && \
+    useradd -d /usr/local/build -m -G wheel build && \
+    printf '\nBUILDENV+=(ccache)\n' >> /etc/makepkg.conf && \
+    ln -sf /usr/bin/ccache /usr/lib/ccache/bin/aarch64-linux-gnu-gcc && \
+    install -d -o build -g build /usr/local/build/.cache/ccache
+
+USER build
+WORKDIR /packages/linux-yoga

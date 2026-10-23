@@ -8,7 +8,7 @@ COPY sudoers.d/build /etc/sudoers.d/
 # ARM emulation/build kernels may lack Landlock support for pacman's downloader.
 RUN pacman -Syu --needed --noconfirm --disable-sandbox base-devel git archlinuxarm-keyring curl tar \
     gcc devtools namcap xmlto docbook-xsl inetutils bc uboot-tools \
-    meson linux-headers dtc ccache cmake gawk && \
+    meson linux-headers dtc ccache cmake gawk openssl libelf pahole python && \
     useradd -d /usr/local/build -m -G wheel build
 
 # makepkg enables the compiler wrappers for all package builds.

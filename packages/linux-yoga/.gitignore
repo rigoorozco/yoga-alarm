@@ -2,3 +2,5 @@ src/
 pkg/
 *.tar.gz
 *.tar.xz
+.cross-build/
+.kernel-build.lock
