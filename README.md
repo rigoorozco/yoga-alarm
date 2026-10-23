@@ -78,6 +78,17 @@ systemctl --user restart wireplumber pipewire pipewire-pulse
 
 ## Package Signing
 
+After manually removing unwanted package archives and their signatures from
+`packages/repo`, regenerate the repository database using the existing Docker image:
+
+```sh
+scripts/rebuild-repo.sh
+```
+
+This indexes all remaining package archives without rebuilding packages or changing
+their signatures. It can be run from any directory. Set `REPO_DIR` to use another
+repository directory.
+
 Package archives in `packages/repo` can be signed after they are built:
 
 ```sh
